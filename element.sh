@@ -2,19 +2,27 @@
 PSQL="psql -X -U freecodecamp -d periodic_table -t -c"
 if [[ -z $1 ]]
 then
-  echo Please provide an elmeent as an argument.
+  echo Please provide an element as an argument.
 else
   # find element
-  ELEMENT=$($PSQL "
-    SELECT 
+  QUERY="SELECT 
       atomic_number, symbol, name, 
       atomic_mass, melting_point_celsius, boiling_point_celsius,
       types.type
     FROM elements 
     INNER JOIN properties USING (atomic_number)
-    INNER JOIN types USING (type_id)
-    WHERE atomic_number=$1 OR 
-    symbol='$1' OR name='$1'")
+    INNER JOIN types USING (type_id)"
+  
+  if [[ $1 =~ [0-9]+ ]]
+  then
+    WHERE_CONDITION="
+      WHERE atomic_number=$1"
+  else
+    WHERE_CONDITION="
+      WHERE symbol='$1' OR name='$1'"
+  fi
+  
+  ELEMENT=$($PSQL "$QUERY $WHERE_CONDITION")
   
   if [[ -z $ELEMENT ]]
   then
